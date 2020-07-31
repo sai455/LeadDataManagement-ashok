@@ -10,6 +10,6 @@ namespace LeadDataManagement.Services.Interface
     {
         IQueryable<UserScrub> GetAllUserScrubs();
         IList<UserScrub> GetScrubsByUserId(int userId);
-        void SaveUserScrub(long scrubInputRecords,int userId, string leadTypeIds, long matchedCount, long unmatchedCount, string matchedPath, string unMatchedPath, string fileName, int duration);
+        void SaveUserScrub(long scrubInputRecords,int userId, string leadTypeIds, long matchedCount, long unmatchedCount, string matchedPath, string unMatchedPath, string fileName, int duration, bool IsUnlimitedPackageInActivation);
     }
 }

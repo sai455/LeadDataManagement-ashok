@@ -116,8 +116,8 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Credits</label>
                             <div class="col-sm-9">
+                                <input type="hidden" value="0" id="originalCredit" />
                                 <input type="text" class="form-control"
-                                       readonly="readonly"
                                        required="required"
                                        name="CreditScore"
                                        id="CreditScore"
@@ -168,6 +168,7 @@
         function updateUserDetails() {
             var discountVal = $('#discountPercentage').val();
             var creditScore = parseInt($('#CreditScore').val());
+            var oscore = parseInt($('#originalCredit').val());
             var nickName = $('#nickName').val();
             if ($('#CreditScore').val().length == 0) {
                 $('#errorText').html("Credit Score is required.")
@@ -189,7 +190,7 @@
                 $('#errorDiv').show();
                 return false;
             }
-            updateUserStatus($('#Userid').val(), parseInt($('#CreditScore').val()), $('#statusId').val(), parseInt(discountVal), nickName)
+            updateUserStatus($('#Userid').val(), parseInt($('#CreditScore').val()), $('#statusId').val(), parseInt(discountVal), nickName, oscore)
 
         }
         //Edit a User
@@ -199,13 +200,14 @@
             var statusId = $(this).data('status');
             var nickName = $(this).data('nick');
             var discountPercentage = $(this).data('discountpercentage');
+            $('#originalCredit').val(score);
             $('#CreditScore').val(score);
             $('#Userid').val(id);
             $('#statusId').val(statusId);
             $('#discountPercentage').val(discountPercentage);
             $('#nickName').val(nickName);
             $('.modal-title').html("Edit User Details");
-            $('#CreditScore').attr('readonly', true);
+            //$('#CreditScore').attr('readonly', true);
             $('#Modal').modal('show');
         });
 
@@ -216,6 +218,7 @@
             var statusId = 2;
             var discountPercentage = $(this).data('discountpercentage');
             var nickName = $(this).data('nick');
+            $('#originalCredit').val(score);
             $('#CreditScore').val(score);
             $('#Userid').val(id);
             $('#statusId').val(statusId);
@@ -241,7 +244,7 @@
                 closeOnConfirm: false,
                 showLoaderOnConfirm: true
             }, function () {
-                updateUserStatus(id, score, 3, discountPercentage, nickName);
+                updateUserStatus(id, score, 3, discountPercentage, nickName,score);
             })
 
         });
@@ -261,17 +264,18 @@
                 closeOnConfirm: false,
                 showLoaderOnConfirm: true
             }, function () {
-                updateUserStatus(id, score, 2, discountPercentage, nickName);
+                updateUserStatus(id, score, 2, discountPercentage, nickName,score);
             })
 
         });
-        function updateUserStatus(id, score, statusId, discountPercentage, nickName) {
+        function updateUserStatus(id, score, statusId, discountPercentage, nickName, oscore) {
             $.ajax({
                 url: '@Url.Action("UpdateUserStatus", "Admin")',
                 type: 'post',
                 datatype: "json",
                 data: {
                     userId: id,
+                   originalCredit:oscore,
                     creditScore: score,
                     statusId: statusId,
                     discountPercentage: discountPercentage,

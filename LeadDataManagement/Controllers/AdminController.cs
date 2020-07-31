@@ -34,32 +34,36 @@ namespace LeadDataManagement.Controllers
                 return RedirectToAction("Index", "Login");
             }
             ViewBag.CurrentUser = this.CurrentLoggedInUser;
-            ViewBag.PstTime = DateTimeHelper.GetDateTimeNowByTimeZone(DateTimeHelper.TimeZoneList.PacificStandardTime).ToString("yyyy-MM-dd");
-
+            var dateNow=DateTimeHelper.GetDateTimeNowByTimeZone(DateTimeHelper.TimeZoneList.PacificStandardTime);
+            ViewBag.PstTime = dateNow.ToString("yyyy-MM-dd");
+            ViewBag.PstTimeMonthStart= new DateTime(dateNow.Year, dateNow.Month, 1).ToString("yyyy-MM-dd");
             return View();
         }
-        public ActionResult UserScrubsGrid(DateTime date)
+        public ActionResult UserScrubsGrid(DateTime fromDate,DateTime toDate)
         {
 
             var usersList = userService.GetUsers().ToList();
             var Leads = leadService.GetLeadTypes().ToList();
             List<UserScrubsGridModel> retData = new List<UserScrubsGridModel>();
-            var userScrubs = userScrubService.GetAllUserScrubs().OrderByDescending(x=>x.CreatedDate).ToList().Where(x=>x.CreatedDate.Date==date.Date);
+            var userScrubs = userScrubService.GetAllUserScrubs().OrderByDescending(x=>x.CreatedDate).ToList().Where(x=>x.CreatedDate.Date>=fromDate.Date && x.CreatedDate.Date<=toDate.Date);
             int iCount = 0;
             foreach (var u in userScrubs)
             {
-                iCount += 1;
-                List<int> leadTypes = JsonConvert.DeserializeObject<List<DropDownModel>>(u.LeadTypeIds).Select(x => x.Id).ToList();
-                string InputExtensions = u.InputFilePath.Split('.')[1];
-                retData.Add(new UserScrubsGridModel()
+                if (usersList.Any(x => x.Id == u.UserId))
                 {
-                    Sno = iCount,
-                    UserName= usersList.Where(x=>x.Id==u.UserId).FirstOrDefault().Name,
-                    ScrubCredits = LeadsHelpers.ToUsNumberFormat(u.ScrubCredits),
-                    CreatedAt = u.CreatedDate.ToString("dd-MMM-yyyy hh:mm:ss tt"),
-                    LeadType = String.Join(",", Leads.Where(x => leadTypes.Contains(x.Id)).Select(x => x.Name).ToList()),
-                    Matched = "Input File  <a href='" + u.InputFilePath + "' style='cursor:pointer' download='InputFile-" + u.Id + "." + InputExtensions + "'><i class='fa fa-download' ></i></a><br>"+"Matched- " + u.MatchedCount + " <a href='" + u.MatchedPath + ".csv' style='cursor:pointer' download='Matched-" + u.Id + ".csv'><i class='fa fa-download' ></i></a><br>"+ "Clean- " + u.UnMatchedCount + " <a href='" + u.UnMatchedPath + ".csv' style='cursor:pointer' download='UnMatched-" + u.Id + ".csv'><i class='fa fa-download' ></i></a>",
-                });
+                    iCount += 1;
+                    List<int> leadTypes = JsonConvert.DeserializeObject<List<DropDownModel>>(u.LeadTypeIds).Select(x => x.Id).ToList();
+                    string InputExtensions = u.InputFilePath.Split('.')[1];
+                    retData.Add(new UserScrubsGridModel()
+                    {
+                        Sno = iCount,
+                        UserName = usersList.Where(x => x.Id == u.UserId).FirstOrDefault().Name,
+                        ScrubCredits = LeadsHelpers.ToUsNumberFormat(u.ScrubCredits),
+                        CreatedAt = u.CreatedDate.ToString("dd-MMM-yyyy hh:mm:ss tt"),
+                        LeadType = String.Join(",", Leads.Where(x => leadTypes.Contains(x.Id)).Select(x => x.Name).ToList()),
+                        Matched = "Input File  <a href='" + u.InputFilePath + "' style='cursor:pointer' download='InputFile-" + u.Id + "." + InputExtensions + "'><i class='fa fa-download' ></i></a><br>" + "Matched- " + u.MatchedCount + " <a href='" + u.MatchedPath + ".csv' style='cursor:pointer' download='Matched-" + u.Id + ".csv'><i class='fa fa-download' ></i></a><br>" + "Clean- " + u.UnMatchedCount + " <a href='" + u.UnMatchedPath + ".csv' style='cursor:pointer' download='UnMatched-" + u.Id + ".csv'><i class='fa fa-download' ></i></a>",
+                    });
+                }
             }
             var jsonData = new { data = from emp in retData select emp };
             return new JsonResult()
@@ -69,34 +73,37 @@ namespace LeadDataManagement.Controllers
                 MaxJsonLength = Int32.MaxValue
             };
         }
-        public ActionResult UserCreditLogsGrid(DateTime date)
+        public ActionResult UserCreditLogsGrid(DateTime fromDate,DateTime toDate)
         {
             List<UserCreditLogGridViewModel> retData = new List<UserCreditLogGridViewModel>();
-            var userCreditLogs = userCreditLogsService.GetAllUserCreditLogs().ToList().Where(x => x.CreatedAt.Date==date.Date);
+            var userCreditLogs = userCreditLogsService.GetAllUserCreditLogs().ToList().Where(x => x.CreatedAt.Date >= fromDate.Date && x.CreatedAt.Date <= toDate.Date);
             var users = userService.GetUsers().ToList();
             int iCount = 0;
             foreach (var u in userCreditLogs)
             {
                 var thisUser = users.Where(x => x.Id == u.UserId).FirstOrDefault();
                 string ReferalDetails = string.Empty;
-                if(thisUser.ReferedUserId.HasValue && thisUser.ReferedUserId.Value>0)
+                if (thisUser != null)
                 {
-                    ReferalDetails = string.Format("Referral Bonus {0} to {1}",LeadsHelpers.ToUsNumberFormat(u.ReferalUserCredits), users.Where(x => x.Id == thisUser.ReferedUserId.Value).FirstOrDefault().Name);
+                    if (thisUser.ReferedUserId.HasValue && thisUser.ReferedUserId.Value > 0)
+                    {
+                        ReferalDetails = string.Format("Referral Bonus {0} to {1}", LeadsHelpers.ToUsNumberFormat(u.ReferalUserCredits), users.Where(x => x.Id == thisUser.ReferedUserId.Value).FirstOrDefault().Name);
+                    }
+                    iCount += 1;
+                    retData.Add(new UserCreditLogGridViewModel()
+                    {
+                        SNo = iCount,
+                        Id = u.Id,
+                        UserName = thisUser.Name,
+                        Date = u.CreatedAt.ToString("dd-MMM-yyyy hh:mm:ss tt"),
+                        CreatedAt = u.CreatedAt,
+                        Credits = LeadsHelpers.ToUsNumberFormat(u.Credits),
+                        DisCountPercentage = u.PackageId > 0 ?u.DiscountPercentage.ToString():string.Empty,
+                        AmountPaid = Math.Round(u.FinalAmount, 2).ToString(),
+                        PackageName = u.PackageId>0?creditPackageService.GetAllCreditPackages().FirstOrDefault(x => x.Id == u.PackageId).PackageName: "Admin Provided Credits",
+                        ReferalInfo = ReferalDetails
+                    });
                 }
-                iCount += 1;
-                retData.Add(new UserCreditLogGridViewModel()
-                {
-                    SNo = iCount,
-                    Id = u.Id,
-                    UserName= thisUser.Name,
-                    Date = u.CreatedAt.ToString("dd-MMM-yyyy hh:mm:ss tt"),
-                    CreatedAt = u.CreatedAt,
-                    Credits = LeadsHelpers.ToUsNumberFormat(u.Credits),
-                    DisCountPercentage = u.DiscountPercentage.ToString(),
-                    AmountPaid = Math.Round(u.FinalAmount, 2).ToString(),
-                    PackageName = creditPackageService.GetAllCreditPackages().FirstOrDefault(x => x.Id == u.PackageId).PackageName,
-                    ReferalInfo= ReferalDetails
-                });
             }
             retData = retData.OrderByDescending(x => x.CreatedAt).ToList();
             var jsonData = new { data = from emp in retData select emp };
@@ -124,7 +131,7 @@ namespace LeadDataManagement.Controllers
         {
             var userScrubLogs = userScrubService.GetAllUserScrubs().ToList();
             List<UserGridViewModel> retData = new List<UserGridViewModel>();
-            retData = userService.GetUsers().Where(x => x.IsAdmin == false).ToList().Select(x => new UserGridViewModel 
+            retData = userService.GetUsers().ToList().Select(x => new UserGridViewModel 
             { 
                 Id=x.Id,
                 Name=x.Name,
@@ -143,9 +150,10 @@ namespace LeadDataManagement.Controllers
             int iCount = 0;
             foreach(var r in retData)
             {
+                r.CreditScore = r.CreditScore - userScrubLogs.Where(x => x.UserId == r.Id).Where(x => x.IsUnlimitedPackageInActivation == false).Sum(x => x.ScrubCredits);
                 iCount += 1;
                 r.SNo = iCount;
-                r.CreditScoreStr = LeadsHelpers.ToUsNumberFormat(r.CreditScore-userScrubLogs.Where(x=>x.UserId==r.Id).Sum(x => x.ScrubCredits));
+                r.CreditScoreStr = LeadsHelpers.ToUsNumberFormat(r.CreditScore);
                 if (r.StatusId==1)
                 {
                     r.EditBtn = "<button type='button' class='btn btn-success m-b-10 btnapprove btn-sm' data-id='" + r.Id+ "'data-discountPercentage='"+ r.DiscountPercentage +"' data-score='" + r.CreditScore+ "' data-nick='"+ r.NickName+"'>Approve</button>";
@@ -168,11 +176,15 @@ namespace LeadDataManagement.Controllers
             return Json(jsonData, JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult UpdateUserStatus(int userId,long creditScore,int statusId,int discountPercentage,string nickName)
+        public ActionResult UpdateUserStatus(int userId,long creditScore,int statusId,int discountPercentage,string nickName,long originalCredit)
         {
             try
             {
-                userService.UpdateUserStatus(userId, creditScore, statusId, discountPercentage,nickName);
+                userService.UpdateUserStatus(userId, creditScore, statusId, discountPercentage, nickName);
+                if ((creditScore - originalCredit)>0)
+                {
+                    userCreditLogsService.BuyCredits(userId, 0, 0, (creditScore - originalCredit), 0, discountPercentage, 0, 0, string.Empty);
+                }
                 
             }catch(Exception ex)
             {
@@ -337,6 +349,7 @@ namespace LeadDataManagement.Controllers
             foreach (var l in leadTypesList)
             {
                 iCount += 1;
+                bool isUnlimited = l.IsUnlimitedPackage.HasValue ? l.IsUnlimitedPackage.Value : false;
                 retData.Add(new CreditPackageViewModel()
                 {
                     Id = l.Id,
@@ -348,21 +361,22 @@ namespace LeadDataManagement.Controllers
                     Credits=l.Credits,
                     CreditsStr=LeadsHelpers.ToUsNumberFormat(l.Credits),
                     Price=l.Price,
-                    EditBtn = "<button type='button' class='btn btn-primary m-b-10 btnedit btn-sm' data-id='" + l.Id + "' data-packagename='" + l.PackageName + "' data-credits='" + l.Credits + "' data-price='" + l.Price + "' data-status='" + l.IsActive + "' data-id='" + l.Id + "'><i class='fa fa-pencil-square-o'></i> Edit</button>"
+                    IsUnlimitedPackage= isUnlimited,
+                    EditBtn = "<button type='button' class='btn btn-primary m-b-10 btnedit btn-sm' data-isunlimited='"+ isUnlimited + "' data-id='" + l.Id + "' data-packagename='" + l.PackageName + "' data-credits='" + l.Credits + "' data-price='" + l.Price + "' data-status='" + l.IsActive + "' data-id='" + l.Id + "'><i class='fa fa-pencil-square-o'></i> Edit</button>"
                 });
             }
             var jsonData = new { data = from emp in retData select emp };
             return Json(jsonData, JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult AddUpdatePackage(int id,string packageName,long credits,long price, bool status)
+        public ActionResult AddUpdatePackage(int id,string packageName,long credits,long price, bool status,bool isUnlimitedPackage)
         {
             bool isExists = creditPackageService.GetAllCreditPackages().Any(x => x.Id != id && x.PackageName.ToLower() == packageName.ToLower());
             if(isExists)
             {
                 return Json("Duplicate package not allowed", JsonRequestBehavior.AllowGet);
             }
-            creditPackageService.SavePackage(id, packageName, credits, price, status);
+            creditPackageService.SavePackage(id, packageName, credits, price, status,isUnlimitedPackage);
 
             return Json("", JsonRequestBehavior.AllowGet);
         }

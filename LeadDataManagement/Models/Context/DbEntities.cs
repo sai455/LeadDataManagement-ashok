@@ -58,6 +58,7 @@ namespace LeadDataManagement.Models.Context
         public string MatchedPath { get; set; }
         public string UnMatchedPath { get; set; }
         public long ScrubCredits { get; set; }
+        public bool IsUnlimitedPackageInActivation { get; set; }
     }
 
     public class CreditPackage
@@ -70,6 +71,7 @@ namespace LeadDataManagement.Models.Context
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? ModifiedAt { get; set; }
+        public bool? IsUnlimitedPackage { get; set; }
     }
 
     public class UserCreditLogs

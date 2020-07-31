@@ -24,7 +24,7 @@ namespace LeadDataManagement.Services
             return creditPackageRepository.GetAll();
         }
 
-        public void SavePackage(int id, string packageName, long credits, long price, bool status)
+        public void SavePackage(int id, string packageName, long credits, long price, bool status,bool isUnlimitedPackage)
         {
             if(id==-1)
             {
@@ -34,6 +34,7 @@ namespace LeadDataManagement.Services
                     Price=price,
                     IsActive=status,
                     CreatedAt= currentPstTime,
+                    IsUnlimitedPackage= isUnlimitedPackage
                 });
             }
             else
@@ -44,6 +45,7 @@ namespace LeadDataManagement.Services
                 data.Price = price;
                 data.IsActive = status;
                 data.ModifiedAt = currentPstTime;
+                data.IsUnlimitedPackage = isUnlimitedPackage;
                 creditPackageRepository.Update(data, data.Id);
             }
         }

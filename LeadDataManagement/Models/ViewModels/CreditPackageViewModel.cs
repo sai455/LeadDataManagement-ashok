@@ -17,6 +17,7 @@ namespace LeadDataManagement.Models.ViewModels
         public bool IsActive { get; set; }
         public string CreatedDate { get; set; }
         public string EditBtn { get; set; }
+        public bool IsUnlimitedPackage { get; set; }
     }
 
     public class UserCreditLogGridViewModel

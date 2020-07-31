@@ -19,9 +19,9 @@ namespace LeadDataManagement.Controllers
         // GET: Login
         public ActionResult Index()
         {
-            
             return View();
         }
+
         [HttpPost]
         public ActionResult Index(string email, string password)
         {
@@ -79,6 +79,7 @@ namespace LeadDataManagement.Controllers
                 {
                     user.Password = LeadsHelpers.Encrypt(user.Password);
                     _userService.SaveUser(user);
+                    LeadsHelpers.SendEmail(user.Name, user.Email, string.Empty);
                     return RedirectToAction("SignUpCompleted", "Login");
                 }
             }

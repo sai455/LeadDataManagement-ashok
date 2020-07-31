@@ -1,7 +1,5 @@
 ﻿
-@{
-    ViewBag.Title = "Users";
-}
+@{ ViewBag.Title = "Users"; }
 
 
 <style>
@@ -74,29 +72,52 @@
             </div>
             @if (Convert.ToBoolean(ViewBag.IsFileError) == true)
             {
-                <div class="alert alert-danger background-danger">
-                    <button type="button" class="close"
-                            data-dismiss="alert" aria-label="Close">
-                        <i class="icofont icofont-close-line-circled text-white"></i>
-                    </button>
-                    <strong>File Upload Error!</strong>  Please verify the Phone column is the first column in the uploaded sheet.
-                </div>
-            }
+        <div class="alert alert-danger background-danger">
+            <button type="button" class="close"
+                    data-dismiss="alert" aria-label="Close">
+                <i class="icofont icofont-close-line-circled text-white"></i>
+            </button>
+            <strong>File Upload Error!</strong>  Please verify the Phone column is the first column in the uploaded sheet.
+        </div>      }
             @if (Convert.ToBoolean(ViewBag.NoCredits) == true)
             {
-                <div class="alert alert-danger background-danger">
-                    <button type="button" class="close"
-                            data-dismiss="alert" aria-label="Close">
-                        <i class="icofont icofont-close-line-circled text-white"></i>
-                    </button>
-                    <strong>Insufficient Credit Balance!</strong> File row count exceeds your current credit balance. Add more credits or reduce your file size to continue.
+        <div class="alert alert-danger background-danger">
+            <button type="button" class="close"
+                    data-dismiss="alert" aria-label="Close">
+                <i class="icofont icofont-close-line-circled text-white"></i>
+            </button>
+            <strong>Insufficient Credit Balance!</strong> File row count exceeds your current credit balance. Add more credits or reduce your file size to continue.
+        </div>      }
+
+            <div class="row">
+                <div class="col-sm-12">
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Points to Scrub</h5>
+                        </div>
+                        <div class="card-block list-tag">
+                            <div class="row">
+                                <div class="col-sm-12 col-xl-12">
+                                    <ol>
+                                        <li>Every row of data that is scrubbed will deduct 1 credit from your account.</li>
+                                        <li>Files must be less than 75k lines of data.</li>
+                                        <li>Files cannot contain quotation marks.</li>
+                                        <li>Phone numbers must be in the first column.</li>
+                                        <li>The Phone header must say "Phone" or "Ph" or "Home Phone" or "Telephone" or "Phone Home" or "PhoneHome"</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
-            }
+            </div>
             <div class="page-body">
                 <div class="card">
                     <div class="card-header">
                         <div class="col-xl-3 m-b-30">
-                            <button class="btn btn-primary waves-effect waves-light btn-sm newScrub" data-toggle="modal" data-target="#large-Modal"><i class="fa fa-hourglass-2"></i> New Scrub</button>
+                            <button class="btn btn-primary waves-effect waves-light btn-sm newScrub"><i class="fa fa-hourglass-2"></i> New Scrub</button>
                         </div>
                         <div class="card-header-right">
                             <ul class="list-unstyled card-option">
@@ -156,48 +177,45 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h4 class="modal-title">Perfor Scrub</h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close btn-close-pop" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                @using (Html.BeginForm("PerformUserScrub", "Users", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                @using (Html.BeginForm("PerformUserScrub", "Users", FormMethod.Post, new {id="scrubForm", enctype = "multipart/form-data" }))
                 {
-                    <div class="row">
-                        <div class="col-xl-12 m-b-30">
-                            <h4 class="sub-title">Lead Type</h4>
-                            <input type="hidden" name="SelectedLeads" id="SelectedLeads" />
-                            <select class="js-example-basic-multiple col-sm-12" required multiple="multiple">
-                                @foreach (var item in ViewBag.LeadTypesList)
-                                {
-                                    <option value="@item.Id">@item.Name</option>
-                                }
-                            </select>
-                        </div>
+    <div class="row">
+        <div class="col-xl-12 m-b-30">
+            <h4 class="sub-title">Lead Type</h4>
+            <input type="hidden" name="SelectedLeads" id="SelectedLeads" />
+            <select class="js-example-basic-multiple col-sm-12" required multiple="multiple">
+                @foreach (var item in ViewBag.LeadTypesList)
+                {
+<option value="@item.Id">@item.Name</option>}
+            </select>
+        </div>
 
-                        <div class="col-xl-12 m-b-30">
-                            <h4 class="sub-title">Scrub Numbers From File (.xlsx or .csv)</h4>
-                            <div class="fallback">
-                                <input name="ScrubFile" type="file" />
-                            </div>
-                        </div>
-                        <div class="col-xl-12 m-b-30 text-center">
-                            <h4 class="sub-title" style="font-weight:bold">OR Quick Scrub</h4>
-                        </div>
-                        <div class="col-xl-12 m-b-30">
-                            <h4 class="sub-title">Enter numbers (separated with comma or each number on new line)</h4>
-                            <textarea id="phone-numbers" class="form-control" type="text" name="PhoneNos" placeholder=" 0073493325, 0073493326, 0073493327
+        <div class="col-xl-12 m-b-30">
+            <h4 class="sub-title">Scrub Numbers From File (.xlsx or .csv)</h4>
+            <div class="fallback">
+                <input name="ScrubFile" id="ScrubFile" type="file" />
+            </div>
+        </div>
+        <div class="col-xl-12 m-b-30 text-center">
+            <h4 class="sub-title" style="font-weight:bold">OR Quick Scrub</h4>
+        </div>
+        <div class="col-xl-12 m-b-30">
+            <h4 class="sub-title">Enter numbers (separated with comma or each number on new line)</h4>
+            <textarea id="phone-numbers" class="form-control" type="text" name="PhoneNos" placeholder=" 0073493325, 0073493326, 0073493327
  OR
  0073493328
  0073493329
  ..." rows="7" maxlength="110000"></textarea>
-                        </div>
-                        <div class="col-md-12 text-center m-t-20">
-                            <button type="submit" class="btn btn-primary">Scrub It</button>
-                        </div>
-                    </div>
-
-                }
+        </div>
+        <div class="col-md-12 text-center m-t-20">
+            <button type="submit" class="btn btn-primary btn-scrub">Scrub It</button>
+        </div>
+    </div>}
             </div>
             <div class="modal-footer">
             </div>
@@ -209,8 +227,23 @@
 @section Scripts {
     <script src="~/Content/lead-app-content/js/chartist.js" type="text/javascript"></script>
     <script type="text/javascript" src="~/Content/lead-app-content/js/select2.full.min.js"></script>
-    @*<script type="text/javascript" src="~/Content/lead-app-content/js/select2-custom.js"></script>*@
-<script type="text/javascript">
+    <script type="text/javascript">
+
+        $('.newScrub').click(function (e) {
+            $('#large-Modal').modal({ backdrop: 'static', keyboard: false })  
+        });
+        $("#scrubForm").submit(function () {
+            var fileLen = document.getElementById("ScrubFile").files.length;
+            var numbs = $('#phone-numbers').val().length;
+            if (fileLen == 0 && numbs == 0) {
+                alert("Please provide scrub file / Input Number's.")
+                return false;
+            }
+            $('.btn-scrub').html('Scrub in progress....');
+            $('.btn-scrub').prop('disabled', true);
+            $('.btn-close-pop').prop('disabled', true);
+        });
+
         var selectedLeads = [];
         $(document).ready(function (e) {
             $(".js-example-basic-multiple").select2({ placeholder: "Select" });
@@ -235,7 +268,8 @@
                 'responsive': false,
                 'autoWidth': true,
                 "bDestroy": true,
-                "iDisplayLength": 10,
+                "iDisplayLength": 5,
+                "lengthMenu": [[5, 10, 25], [5, 10, 25]],
                 "ajax": "/Users/UserScrubsGrid",
                 "columns": [
                     { "data": "Sno" },
@@ -249,6 +283,6 @@
             });
         }
 
-</script>
+    </script>
 
 }

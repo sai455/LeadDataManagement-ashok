@@ -35,5 +35,23 @@ namespace LeadDataManagement.Helpers
             }
             return retVal;
         }
+        public static DateTime ToDateTimeNowByTimeZone(DateTime dt,string timeZoneId)
+        {
+            DateTime retVal;
+            try
+            {
+                TimeZoneInfo timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+                retVal = TimeZoneInfo.ConvertTime(dt, timeZoneInfo);
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                throw new Exception(string.Format("Unable to find the {0} zone in the registry.", timeZoneId));
+            }
+            catch (InvalidTimeZoneException)
+            {
+                throw new Exception(string.Format("Registry data on the {0} zone has been corrupted.", timeZoneId));
+            }
+            return retVal;
+        }
     }
 }

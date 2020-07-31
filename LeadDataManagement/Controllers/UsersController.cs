@@ -36,19 +36,32 @@ namespace LeadDataManagement.Controllers
         {
             ViewBag.PayPalClientId = "AdpPKo_1ekKlG7W9Njp8INCxwYKhDACND1RMgZZzliXv0YjhFLCnZ507Jlu0F7LBPNHNIVmFHe4njTKl";
             ViewBag.CurrentUser = this.CurrentLoggedInUser;
-            ViewBag.PackagesList = creditPackageService.GetAllCreditPackages().Where(x => x.IsActive == true).Select(x => new DropDownModel
+            List<DropDownModel> packageList = new List<DropDownModel>();
+            var packagesList = creditPackageService.GetAllCreditPackages().Where(x => x.IsActive == true).ToList().Select(x => new DropDownModel
             {
                 Id = x.Id,
                 Name = x.PackageName,
                 Count = x.Credits,
-                Amount = x.Price
+                IsUnlimited = x.IsUnlimitedPackage.HasValue?x.IsUnlimitedPackage.Value:false,
+                Amount = x.IsUnlimitedPackage.HasValue && x.IsUnlimitedPackage.Value==false? x.Price: CalculateUnlimitedPackagePrice(x.Price)
             }).ToList();
-
+            ViewBag.PackagesList = packagesList;
             return View();
+        }
+        private float CalculateUnlimitedPackagePrice(long originalPrice)
+        {
+            float retVal = 0f;
+            var todayDate = DateTimeHelper.GetDateTimeNowByTimeZone(DateTimeHelper.TimeZoneList.PacificStandardTime);
+            int daysInMonth= DateTime.DaysInMonth(todayDate.Year, todayDate.Month);
+            DateTime monthLastDate = new DateTime(todayDate.Year, todayDate.Month, daysInMonth);
+            int totalSignUpDays =(int)(monthLastDate - todayDate).TotalDays+1;
+            decimal perdayVal = Math.Round(((decimal)totalSignUpDays / (decimal)daysInMonth), 2);
+            retVal = (float)(perdayVal * originalPrice);
+            return retVal;
         }
         public JsonResult GetUserCreditsDetails()
         {
-            var usedCredits = userScrubService.GetScrubsByUserId(this.CurrentLoggedInUser.Id).Sum(x => x.ScrubCredits);
+            var usedCredits = userScrubService.GetScrubsByUserId(this.CurrentLoggedInUser.Id).Where(x=>x.IsUnlimitedPackageInActivation==false).Sum(x => x.ScrubCredits);
             var userTotalCredits = this.CurrentLoggedInUser.CreditScore;
             var remainingCredits = userTotalCredits - usedCredits;
             return Json(new
@@ -68,7 +81,7 @@ namespace LeadDataManagement.Controllers
                 Name = x.Name,
                 Id = x.Id
             }).OrderBy(x => x.Name).ToList();
-            var usedCredits = userScrubService.GetScrubsByUserId(this.CurrentLoggedInUser.Id).Sum(x => x.ScrubCredits);
+            var usedCredits = userScrubService.GetScrubsByUserId(this.CurrentLoggedInUser.Id).Where(x => x.IsUnlimitedPackageInActivation == false).Sum(x => x.ScrubCredits);
             var userTotalCredits = this.CurrentLoggedInUser.CreditScore;
             ViewBag.remainingCredits =LeadsHelpers.ToUsNumberFormat(userTotalCredits - usedCredits);
             ViewBag.totalCredits = LeadsHelpers.ToUsNumberFormat(userTotalCredits);
@@ -78,9 +91,11 @@ namespace LeadDataManagement.Controllers
 
         public ActionResult UserScrubsGrid()
         {
+            var nowDate = DateTimeHelper.GetDateTimeNowByTimeZone(DateTimeHelper.TimeZoneList.PacificStandardTime);
+            var monthStartDate= new DateTime(nowDate.Year, nowDate.Month,26);
             var Leads = leadService.GetLeadTypes().ToList();
             List<UserScrubsGridModel> retData = new List<UserScrubsGridModel>();
-            var userScrubs = userScrubService.GetScrubsByUserId(this.CurrentLoggedInUser.Id);
+            var userScrubs = userScrubService.GetScrubsByUserId(this.CurrentLoggedInUser.Id).Where(x => x.CreatedDate.Date >= monthStartDate.Date && x.CreatedDate.Date <= nowDate.Date);
             int iCount = 0;
             foreach (var u in userScrubs)
             {
@@ -106,14 +121,21 @@ namespace LeadDataManagement.Controllers
                 MaxJsonLength = Int32.MaxValue
             };
         }
-
+        private bool checkUnlimitedPackageInActivation()
+        {
+            bool retVal = false;
+            var dateNow = DateTimeHelper.GetDateTimeNowByTimeZone(DateTimeHelper.TimeZoneList.PacificStandardTime);
+            var userPackagesList = userCreditLogsService.GetAllUserCreditLogs().Where(x => x.UserId == this.CurrentLoggedInUser.Id).Select(x => x.PackageId).Distinct().ToList();
+            retVal=creditPackageService.GetAllCreditPackages().Any(x => userPackagesList.Contains(x.Id) && x.IsUnlimitedPackage == true && x.CreatedAt.Month== dateNow.Month);
+            return retVal;
+        }
         public ActionResult PerformUserScrub(FormCollection formCollection, string PhoneNos, string SelectedLeads)
         {
             bool isError = false;
             try
             {
-
-                var used = userScrubService.GetScrubsByUserId(this.CurrentLoggedInUser.Id).Sum(x => x.ScrubCredits);
+                bool isUnlimitedPackageInActivation = checkUnlimitedPackageInActivation();
+                var used = userScrubService.GetScrubsByUserId(this.CurrentLoggedInUser.Id).Where(x => x.IsUnlimitedPackageInActivation == false).Sum(x => x.ScrubCredits);
                 Stopwatch sw = Stopwatch.StartNew();
                 List<int> selectedLeads = JsonConvert.DeserializeObject<List<DropDownModel>>(SelectedLeads).Select(x => x.Id).ToList();
                 if (string.IsNullOrEmpty(PhoneNos))
@@ -152,7 +174,7 @@ namespace LeadDataManagement.Controllers
                         if (UserScrubPhonesList.Count > 0)
                         {
 
-                            if ((this.CurrentLoggedInUser.CreditScore - used) >= UserScrubPhonesList.Count())
+                            if (isUnlimitedPackageInActivation || ((this.CurrentLoggedInUser.CreditScore - used) >= UserScrubPhonesList.Count()))
                             {
                                 var matchedList = leadService.ScrubPhoneNos(selectedLeads, UserScrubPhonesList).ToList();
                                 var unmatchedCount = UserScrubPhonesList.Except(matchedList).ToList();
@@ -169,7 +191,7 @@ namespace LeadDataManagement.Controllers
                                 string unMatchedFileName = Guid.NewGuid().ToString();
                                 CreatedDataTableCSV(unMatchedDt, unMatchedFileName);
 
-                                userScrubService.SaveUserScrub(UserScrubPhonesList.Count(), this.CurrentLoggedInUser.Id, SelectedLeads, matchedList.Count(), unmatchedCount.Count(), matchedFileName, unMatchedFileName, newFileName + ext, sw.Elapsed.Seconds);
+                                userScrubService.SaveUserScrub(UserScrubPhonesList.Count(), this.CurrentLoggedInUser.Id, SelectedLeads, matchedList.Count(), unmatchedCount.Count(), matchedFileName, unMatchedFileName, newFileName + ext, sw.Elapsed.Seconds,isUnlimitedPackageInActivation);
                             }
                             else
                             {
@@ -181,7 +203,7 @@ namespace LeadDataManagement.Controllers
                                     Name = x.Name,
                                     Id = x.Id
                                 }).OrderBy(x => x.Name).ToList();
-                                var usedCredits1 = userScrubService.GetScrubsByUserId(this.CurrentLoggedInUser.Id).Sum(x => x.ScrubCredits);
+                                var usedCredits1 = userScrubService.GetScrubsByUserId(this.CurrentLoggedInUser.Id).Where(x => x.IsUnlimitedPackageInActivation == false).Sum(x => x.ScrubCredits);
                                 var userTotalCredits1 = this.CurrentLoggedInUser.CreditScore;
                                 ViewBag.remainingCredits = LeadsHelpers.ToUsNumberFormat(userTotalCredits1 - usedCredits1);
                                 ViewBag.totalCredits = LeadsHelpers.ToUsNumberFormat(userTotalCredits1);
@@ -224,7 +246,7 @@ namespace LeadDataManagement.Controllers
                             string unMatchedFileName = Guid.NewGuid().ToString();
                             CreateSaveCsvFile(unMatchedFileName, unmatchedCount);
 
-                            userScrubService.SaveUserScrub(UserScrubPhonesList.Count(), this.CurrentLoggedInUser.Id, SelectedLeads, matchedList.Count(), unmatchedCount.Count(), matchedFileName, unMatchedFileName, inputFileName + ".csv", sw.Elapsed.Seconds);
+                            userScrubService.SaveUserScrub(UserScrubPhonesList.Count(), this.CurrentLoggedInUser.Id, SelectedLeads, matchedList.Count(), unmatchedCount.Count(), matchedFileName, unMatchedFileName, inputFileName + ".csv", sw.Elapsed.Seconds, isUnlimitedPackageInActivation);
                         }
                         else
                         {
@@ -236,7 +258,7 @@ namespace LeadDataManagement.Controllers
                                 Name = x.Name,
                                 Id = x.Id
                             }).OrderBy(x => x.Name).ToList();
-                            var usedCredits1 = userScrubService.GetScrubsByUserId(this.CurrentLoggedInUser.Id).Sum(x => x.ScrubCredits);
+                            var usedCredits1 = userScrubService.GetScrubsByUserId(this.CurrentLoggedInUser.Id).Where(x => x.IsUnlimitedPackageInActivation == false).Sum(x => x.ScrubCredits);
                             var userTotalCredits1 = this.CurrentLoggedInUser.CreditScore;
                             ViewBag.remainingCredits =LeadsHelpers.ToUsNumberFormat(userTotalCredits1 - usedCredits1);
                             ViewBag.totalCredits = LeadsHelpers.ToUsNumberFormat(userTotalCredits1);
@@ -258,7 +280,7 @@ namespace LeadDataManagement.Controllers
                 Name = x.Name,
                 Id = x.Id
             }).OrderBy(x => x.Name).ToList();
-            var usedCredits = userScrubService.GetScrubsByUserId(this.CurrentLoggedInUser.Id).Sum(x => x.ScrubCredits);
+            var usedCredits = userScrubService.GetScrubsByUserId(this.CurrentLoggedInUser.Id).Where(x => x.IsUnlimitedPackageInActivation == false).Sum(x => x.ScrubCredits);
             var userTotalCredits = this.CurrentLoggedInUser.CreditScore;
             ViewBag.remainingCredits =LeadsHelpers.ToUsNumberFormat(userTotalCredits - usedCredits);
             ViewBag.totalCredits =LeadsHelpers.ToUsNumberFormat(userTotalCredits);
@@ -447,7 +469,7 @@ namespace LeadDataManagement.Controllers
         public ActionResult UserCreditLogGrid()
         {
             List<UserCreditLogGridViewModel> retData = new List<UserCreditLogGridViewModel>();
-            var userCreditLogs = userCreditLogsService.GetAllUserCreditLogs().Where(x=>x.UserId==CurrentLoggedInUser.Id).ToList();
+            var userCreditLogs = userCreditLogsService.GetAllUserCreditLogs().Where(x=>x.UserId==CurrentLoggedInUser.Id && x.PackageId>0).ToList();
             int iCount = 0;
             foreach (var u in userCreditLogs)
             {
@@ -462,6 +484,22 @@ namespace LeadDataManagement.Controllers
                     DisCountPercentage = u.DiscountPercentage.ToString(),
                     AmountPaid = Math.Round(u.FinalAmount,2).ToString(),
                     PackageName = creditPackageService.GetAllCreditPackages().FirstOrDefault(x => x.Id == u.PackageId).PackageName
+                });
+            }
+            var userCreditLogs2 = userCreditLogsService.GetAllUserCreditLogs().Where(x => x.UserId == CurrentLoggedInUser.Id && x.PackageId == 0).ToList();
+            foreach (var u in userCreditLogs2)
+            {
+                iCount += 1;
+                retData.Add(new UserCreditLogGridViewModel()
+                {
+                    SNo = iCount,
+                    Id = u.Id,
+                    Date = u.CreatedAt.ToString("dd-MMM-yyyy hh:mm:ss tt"),
+                    CreatedAt = u.CreatedAt,
+                    Credits = LeadsHelpers.ToUsNumberFormat(u.Credits),
+                    DisCountPercentage = "-",
+                    AmountPaid = "-",
+                    PackageName ="Admin Provided Credits"
                 });
             }
             var usersRefered = userService.GetUsers().Where(x => x.ReferedUserId.HasValue && x.ReferedUserId.Value == CurrentLoggedInUser.Id).ToList();
@@ -494,7 +532,7 @@ namespace LeadDataManagement.Controllers
         }
 
         [HttpPost]
-        public ActionResult AddUserCredits(int packageId, int qty, long credits, long amount, int discountPercentage, float finalAmount, long referalCredits,string transactionDetails)
+        public ActionResult AddUserCredits(int packageId, int qty, long credits, float amount, int discountPercentage, float finalAmount, long referalCredits,string transactionDetails)
         {
             long rCredits = 0;
             if (CurrentLoggedInUser.ReferedUserId.HasValue && CurrentLoggedInUser.ReferedUserId.Value > 0)
@@ -504,7 +542,7 @@ namespace LeadDataManagement.Controllers
                 userData.CreditScore += referalCredits;
                 userService.UpdateUserDetails(userData);
             }
-            userCreditLogsService.BuyCredits(CurrentLoggedInUser.Id, packageId, qty, credits, amount, discountPercentage, finalAmount, rCredits, transactionDetails);
+            userCreditLogsService.BuyCredits(CurrentLoggedInUser.Id, packageId, qty, credits, Convert.ToInt64(amount), discountPercentage, finalAmount, rCredits, transactionDetails);
             CurrentLoggedInUser.CreditScore += credits;
             userService.UpdateUserDetails(CurrentLoggedInUser);
             return Json("");

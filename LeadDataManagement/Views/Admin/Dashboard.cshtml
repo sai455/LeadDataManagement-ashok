@@ -2,7 +2,11 @@
 @{
     ViewBag.Title = "Dashboard";
 }
-
+<style>
+    .form-control{
+        cursor:pointer!important;
+    }
+</style>
 <div class="page-header card">
     <div class="row align-items-end">
         <div class="col-lg-8">
@@ -42,9 +46,8 @@
                         <div class="card">
                             <div class="card-header">
                                 <h5>Scrubs </h5>
-                                <div class="col-sm-12 col-xl-4">
-                                    <input type="date" class="form-control" id="date" value="@ViewBag.PstTime" />
-                                </div>
+                                
+                               
                                 <div class="card-header-right">
                                     <ul class="list-unstyled card-option">
                                         <li class="first-opt"><i class="feather icon-chevron-left open-card-option"></i></li>
@@ -57,31 +60,51 @@
                                 </div>
                             </div>
                             <div class="card-block">
-                                <div class="table-responsive">
-                                    <table id="tblUserScrub" class="table table-hover m-b-0">
-                                        <thead>
-                                            <tr>
-                                                <th>SNo.</th>
-                                                <th>User</th>
-                                                <th>File</th>
-                                                <th>Lead Type</th>
-                                                <th>Credits</th>
-                                                <th>Created At</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        </tbody>
-                                        <tfoot>
-                                            <tr>
-                                                <th>SNo.</th>
-                                                <th>User</th>
-                                                <th>File</th>
-                                                <th>Lead Type</th>
-                                                <th>Credits</th>
-                                                <th>Created At</th>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
+                                <div class="row">
+                                    <div class="col-xl-4">
+                                        <h4 class="sub-title">From</h4>
+                                        <div class="fallback">
+                                            <input type="date" class="form-control" id="fDate" value="@ViewBag.PstTimeMonthStart" />
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-4">
+                                        <h4 class="sub-title">To</h4>
+                                        <div class="fallback">
+                                            <input type="date" class="form-control" id="date" value="@ViewBag.PstTime" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-md-12">
+
+
+                                        <div class="table-responsive">
+                                            <table id="tblUserScrub" class="table table-hover m-b-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>SNo.</th>
+                                                        <th>User</th>
+                                                        <th>File</th>
+                                                        <th>Lead Type</th>
+                                                        <th>Credits</th>
+                                                        <th>Created At</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr>
+                                                        <th>SNo.</th>
+                                                        <th>User</th>
+                                                        <th>File</th>
+                                                        <th>Lead Type</th>
+                                                        <th>Credits</th>
+                                                        <th>Created At</th>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -92,39 +115,56 @@
                         <div class="card">
                             <div class="card-header">
                                 <h5>Credit Transactions </h5>
-                                <div class="col-sm-12 col-xl-4">
-                                    <input type="date" class="form-control" id="dt2" value="@ViewBag.PstTime" />
-                                </div>
                             </div>
                             <div class="card-block">
-                                <div class="table-responsive">
-                                    <table id="tbl" class="table table-hover m-b-0">
-                                        <thead>
-                                            <tr>
-                                                <th>User</th>
-                                                <th>Package</th>
-                                                <th>Credits</th>
-                                                <th>Discount(%)</th>
-                                                <th>Amount Paid</th>
-                                                <th>Referral Bonus</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        </tbody>
-                                        <tfoot>
-                                            <tr>
-                                                <th>User</th>
-                                                <th>Package</th>
-                                                <th>Credits</th>
-                                                <th>Discount(%)</th>
-                                                <th>Amount Paid</th>
-                                                <th>Referral Bonus</th>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
+                                <div class="row">
+                                    <div class="col-xl-4">
+                                        <h4 class="sub-title">From</h4>
+                                        <div class="fallback">
+                                            <input type="date" class="form-control" id="fDate2" value="@ViewBag.PstTimeMonthStart" />
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-4">
+                                        <h4 class="sub-title">To</h4>
+                                        <div class="fallback">
+                                            <input type="date" class="form-control" id="dt2" value="@ViewBag.PstTime" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-md-12">
+
+                                        <div class="table-responsive">
+                                            <table id="tbl" class="table table-hover m-b-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>User</th>
+                                                        <th>Package</th>
+                                                        <th>Credits</th>
+                                                        <th>Discount(%)</th>
+                                                        <th>Amount Paid</th>
+                                                        <th>Referral Bonus</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr>
+                                                        <th>User</th>
+                                                        <th>Package</th>
+                                                        <th>Credits</th>
+                                                        <th>Discount(%)</th>
+                                                        <th>Amount Paid</th>
+                                                        <th>Referral Bonus</th>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                            </div>
                     </div>
                 </div>
             </div>
@@ -143,22 +183,28 @@
             loadDataTable();
             loadUserCreditLogsGrid();
         });
+        $('#fDate').change(function (e) {
+            loadDataTable();
+        });
         $('#date').change(function (e) {
             loadDataTable();
         });
         $('#dt2').change(function (e) {
             loadUserCreditLogsGrid();
         });
-
+        $('#fDate2').change(function (e) {
+            loadUserCreditLogsGrid();
+        });
         function loadDataTable() {
-            var date = $('#date').val();
-            
+            var fromDate = $('#fDate').val();
+            var toDate = $('#date').val();
             $('#tblUserScrub').DataTable({
                 'responsive': false,
                 'autoWidth': true,
                 "bDestroy": true,
-                "iDisplayLength": 10,
-                "ajax": "/Admin/UserScrubsGrid/?date=" + date,
+                "iDisplayLength": 5,
+                "lengthMenu": [[5, 10, 25], [5, 10, 25]],
+                "ajax": "/Admin/UserScrubsGrid/?fromDate=" + fromDate + "&toDate=" + toDate,
                 "columns": [
                     { "data": "Sno" },
                     { "data": "UserName" },
@@ -171,13 +217,15 @@
         }
 
         function loadUserCreditLogsGrid() {
-            var date = $('#dt2').val();
+            var toDate = $('#dt2').val();
+            var fromDate = $('#fDate2').val();
             $('#tbl').DataTable({
                 'responsive': false,
                 'autoWidth': true,
                 "bDestroy": true,
-                "iDisplayLength": 10,
-                "ajax": "/Admin/UserCreditLogsGrid/?date=" + date,
+                "iDisplayLength": 5,
+                "lengthMenu": [[5, 10,25], [5, 10,25]],
+                "ajax": "/Admin/UserCreditLogsGrid/?fromDate=" + fromDate + "&toDate=" + toDate,
                 "columns": [
                     { "data": "UserName" },
                     { "data": "PackageName" },

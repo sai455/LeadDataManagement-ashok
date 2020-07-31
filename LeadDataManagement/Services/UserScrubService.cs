@@ -26,7 +26,7 @@ namespace LeadDataManagement.Services
         {
             return _userScrubRepository.FindAll(x => x.UserId == userId).OrderByDescending(x=>x.Id).ToList();
         }
-        public void SaveUserScrub(long scrubInputRecords,int userId, string leadTypeIds, long matchedCount, long unmatchedCount, string matchedPath, string unMatchedPath, string fileName, int duration)
+        public void SaveUserScrub(long scrubInputRecords,int userId, string leadTypeIds, long matchedCount, long unmatchedCount, string matchedPath, string unMatchedPath, string fileName, int duration, bool IsUnlimitedPackageInActivation)
         {
             _userScrubRepository.Add(new UserScrub()
             {
@@ -39,7 +39,8 @@ namespace LeadDataManagement.Services
                 InputFilePath = "/Content/DataLoads/"+fileName,
                 MatchedPath = "/Content/DataLoads/" + matchedPath,
                 UnMatchedPath = "/Content/DataLoads/" + unMatchedPath,
-                ScrubCredits= scrubInputRecords
+                ScrubCredits= scrubInputRecords,
+                IsUnlimitedPackageInActivation=IsUnlimitedPackageInActivation
             });
         }
     }

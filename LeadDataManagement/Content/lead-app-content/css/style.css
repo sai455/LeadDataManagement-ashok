@@ -10846,7 +10846,7 @@ div.DTS {
 }
 
 .table thead th {
-    border-bottom: 1px solid #d6dde1
+    border-bottom: 0px solid #d6dde1
 }
 
 .invoice-box .table td, .invoice-box .table th, .invoive-info .table td, .invoive-info .table th {

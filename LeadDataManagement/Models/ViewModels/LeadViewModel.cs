@@ -46,6 +46,7 @@ namespace LeadDataManagement.Models.ViewModels
         public Int32 Id { get; set; }
         public string Name { get; set; }
         public Int64 Count { get; set; }
-        public long Amount { get; set; }
+        public float Amount { get; set; }
+        public bool IsUnlimited { get; set; }
     }
 }

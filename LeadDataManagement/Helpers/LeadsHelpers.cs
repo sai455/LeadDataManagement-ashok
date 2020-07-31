@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Mail;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -62,7 +65,6 @@ namespace LeadDataManagement.Helpers
             }
             return clearText;
         }
-
         public static string Decrypt(string cipherText)
         {
             string EncryptionKey = "LEADS2SPBNI99212";
@@ -83,6 +85,55 @@ namespace LeadDataManagement.Helpers
                 }
             }
             return cipherText;
+        }
+   
+        public static void SendEmail(string userName, string Email, string NickName)
+        {
+            string fromEmail = ConfigurationManager.AppSettings["emailFrom"];
+            string fromPassword = ConfigurationManager.AppSettings["emailFromPassword"];
+            string toEmail = ConfigurationManager.AppSettings["toEmail"];
+            var fromAddress = new MailAddress(fromEmail, "SNK Scrub Tools");
+            var toAddress = new MailAddress(toEmail, "SNK Scrub Tools");
+            string subject = "Approval Request For SNK Scrub Tools User -" + userName;
+            StringBuilder sb = new StringBuilder();
+            sb.Append("Hi Team,");
+            sb.AppendLine(Environment.NewLine);
+            sb.AppendLine("New User Registration with below details is awaiting for your approval.");
+            sb.Append(Environment.NewLine);
+            sb.Append("User Name: " + userName);
+            sb.Append(Environment.NewLine);
+            sb.Append("Email: " + Email);
+            sb.Append(Environment.NewLine);
+
+            string body = sb.ToString();
+            MailMessage msg = new MailMessage();
+            msg.To.Add(new MailAddress(toEmail));
+            msg.From = new MailAddress(fromEmail);
+            msg.Subject = subject;
+            msg.SubjectEncoding = Encoding.UTF8;
+            msg.Body = sb.ToString();
+            msg.BodyEncoding = Encoding.UTF8;
+            msg.IsBodyHtml = false;
+            msg.Priority = MailPriority.High;
+
+            SmtpClient client = new SmtpClient();
+            client.Credentials = new NetworkCredential(fromEmail, fromPassword);
+            client.Port = 587;//or use 587            
+            client.Host = "smtp.gmail.com";
+            client.EnableSsl = true;
+            try
+            {
+
+                client.Send(msg);
+
+            }
+            catch (SmtpException ex)
+            {
+                throw ex;
+            }
+            if (msg != null) { msg.Dispose(); }
+            client = null;
+            msg = null;
         }
     }
 }

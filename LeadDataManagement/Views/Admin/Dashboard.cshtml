@@ -1,0 +1,192 @@
+﻿
+@{
+    ViewBag.Title = "Dashboard";
+}
+
+<div class="page-header card">
+    <div class="row align-items-end">
+        <div class="col-lg-8">
+            <div class="page-header-title">
+                <i class="feather icon-home bg-c-blue"></i>
+                <div class="d-inline">
+                    <h5>Dashboard page</h5>
+                    <span>Dashboard page goes here</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="page-header-breadcrumb">
+                <ul class=" breadcrumb breadcrumb-title">
+                    <li class="breadcrumb-item">
+                        <a href="@Url.Action("Dashboard","Admin")"><i class="feather icon-home"></i></a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="#!">Admin Module</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="#!">Dashboard</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="pcoded-inner-content">
+    <div class="main-body">
+        <div class="page-wrapper">
+            <div class="page-body">
+
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Scrubs </h5>
+                                <div class="col-sm-12 col-xl-4">
+                                    <input type="date" class="form-control" id="date" value="@ViewBag.PstTime" />
+                                </div>
+                                <div class="card-header-right">
+                                    <ul class="list-unstyled card-option">
+                                        <li class="first-opt"><i class="feather icon-chevron-left open-card-option"></i></li>
+                                        <li><i class="feather icon-maximize full-card"></i></li>
+                                        <li><i class="feather icon-minus minimize-card"></i></li>
+                                        <li><i class="feather icon-refresh-cw reload-card"></i></li>
+                                        <li><i class="feather icon-trash close-card"></i></li>
+                                        <li><i class="feather icon-chevron-left open-card-option"></i></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-block">
+                                <div class="table-responsive">
+                                    <table id="tblUserScrub" class="table table-hover m-b-0">
+                                        <thead>
+                                            <tr>
+                                                <th>SNo.</th>
+                                                <th>User</th>
+                                                <th>File</th>
+                                                <th>Lead Type</th>
+                                                <th>Credits</th>
+                                                <th>Created At</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th>SNo.</th>
+                                                <th>User</th>
+                                                <th>File</th>
+                                                <th>Lead Type</th>
+                                                <th>Credits</th>
+                                                <th>Created At</th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Credit Transactions </h5>
+                                <div class="col-sm-12 col-xl-4">
+                                    <input type="date" class="form-control" id="dt2" value="@ViewBag.PstTime" />
+                                </div>
+                            </div>
+                            <div class="card-block">
+                                <div class="table-responsive">
+                                    <table id="tbl" class="table table-hover m-b-0">
+                                        <thead>
+                                            <tr>
+                                                <th>User</th>
+                                                <th>Package</th>
+                                                <th>Credits</th>
+                                                <th>Discount(%)</th>
+                                                <th>Amount Paid</th>
+                                                <th>Referral Bonus</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th>User</th>
+                                                <th>Package</th>
+                                                <th>Credits</th>
+                                                <th>Discount(%)</th>
+                                                <th>Amount Paid</th>
+                                                <th>Referral Bonus</th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="styleSelector">
+</div>
+
+@section Scripts {
+
+    <script type="text/javascript">
+        $(document).ready(function (e) {
+            loadDataTable();
+            loadUserCreditLogsGrid();
+        });
+        $('#date').change(function (e) {
+            loadDataTable();
+        });
+        $('#dt2').change(function (e) {
+            loadUserCreditLogsGrid();
+        });
+
+        function loadDataTable() {
+            var date = $('#date').val();
+            
+            $('#tblUserScrub').DataTable({
+                'responsive': false,
+                'autoWidth': true,
+                "bDestroy": true,
+                "iDisplayLength": 10,
+                "ajax": "/Admin/UserScrubsGrid/?date=" + date,
+                "columns": [
+                    { "data": "Sno" },
+                    { "data": "UserName" },
+                    { "data": "Matched" },
+                    { "data": "LeadType" },
+                    { "data": "ScrubCredits" },
+                    { "data": "CreatedAt" }
+                ]
+            });
+        }
+
+        function loadUserCreditLogsGrid() {
+            var date = $('#dt2').val();
+            $('#tbl').DataTable({
+                'responsive': false,
+                'autoWidth': true,
+                "bDestroy": true,
+                "iDisplayLength": 10,
+                "ajax": "/Admin/UserCreditLogsGrid/?date=" + date,
+                "columns": [
+                    { "data": "UserName" },
+                    { "data": "PackageName" },
+                    { "data": "Credits" },
+                    { "data": "DisCountPercentage" },
+                    { "data": "AmountPaid" },
+                    { "data": "ReferalInfo" }
+                ]
+            });
+        }
+    </script>
+}

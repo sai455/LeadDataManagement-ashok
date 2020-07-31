@@ -1,0 +1,224 @@
+﻿
+@{
+    ViewBag.Title = "Lead";
+}
+
+
+<style>
+    table.dataTable {
+        border-collapse: collapse !important;
+    }
+    .swal-wide {
+        width: 850px !important;
+    }
+</style>
+
+
+<div class="page-header card">
+    <div class="row align-items-end">
+        <div class="col-lg-8">
+            <div class="page-header-title">
+                <i class="fa fa-file-excel-o bg-c-blue"></i>
+                <div class="d-inline">
+                    <h5>Lead Master Data</h5>
+                    <span>Lead Master data goes here</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="page-header-breadcrumb">
+                <ul class=" breadcrumb breadcrumb-title">
+                    <li class="breadcrumb-item">
+                        <a href="@Url.Action("Dashboard","Admin")"><i class="feather icon-home"></i></a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="#!">Admin Module</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="#!">Lead Master Data</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="pcoded-inner-content">
+
+    <div class="main-body">
+        <div class="page-wrapper">
+
+            <div class="page-body">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="col-xl-3 m-b-30">
+                            <button class="btn btn-primary waves-effect waves-light btn-sm load" data-toggle="modal" data-target="#large-Modal"><i class="feather icon-plus"></i> Load Data</button>
+                        </div>
+                        @*<div class="col-xl-3 m-b-30">
+                            <h4 class="sub-title">Lead Type</h4>
+                            <select name="select" class="form-control form-control-primary fill" id="leadTypeddl">
+                                <option value="">Select</option>
+                                @foreach (var item in ViewBag.LeadTypesList)
+                                {
+                                    <option value="@item.Id">@item.Name</option>
+                                }
+                            </select>
+                        </div>*@
+                        <div class="card-header-right">
+                            <ul class="list-unstyled card-option">
+                                <i class="feather icon-chevron-left open-card-option"></i></li>
+                                <li><i class="feather icon-maximize full-card"></i></li>
+                                <li><i class="feather icon-minus minimize-card"></i></li>
+                                <li><i class="feather icon-refresh-cw reload-card" id="tblLead-refresh"></i></li>
+                                <li><i class="feather icon-chevron-left open-card-option"></i></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-block">
+                        <div class="dt-responsive table-responsive">
+                            <table id="tblLeads" class="table table-striped table-bordered nowrap" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>SNo.</th>
+                                        <th>Lead Type</th>
+                                        <th>No Of Phone No's</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th>SNo.</th>
+                                        <th>Lead Type</th>
+                                        <th>No Of Phone No's</th>
+                                        <th></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="styleSelector">
+    </div>
+</div>
+
+
+<div class="modal fade" id="large-Modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Load Data</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @using (Html.BeginForm("UploadMasterData", "Admin", FormMethod.Post, new {enctype = "multipart/form-data" }))
+                {
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4 class="sub-title">Lead Type</h4>
+                        <select class="form-control form-control-primary fill" name="LeadTypeId" required>
+                            <option value="">Select</option>
+                            @foreach (var item in ViewBag.LeadTypesList)
+                            {
+                                <option value="@item.Id">@item.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6 m-t-50">
+                        <div class="fallback">
+                            <input name="MasterLoadFile" type="file" accept="text/plain" required/>
+                        </div>
+                    </div>
+                    <div class="col-md-12 text-center m-t-20">
+                        <button type="submit" class="btn btn-primary">Upload</button>
+                    </div>
+                </div>
+                   
+                }
+                </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+
+@section Scripts {
+    <script type="text/javascript">
+        $(document).ready(function (e) {
+            loadDataTable();
+        });
+        $('#tblLead-refresh').click(function (e) {
+            loadDataTable();
+        });
+        $('#leadTypeddl').change(function (e) {
+            loadDataTable();
+        })
+        function loadDataTable() {
+            var leadTypeId = null;
+            $('#tblLeads').DataTable({
+                'responsive': false,
+                'autoWidth': true,
+                "bDestroy": true,
+                "iDisplayLength": 10,
+                "ajax": "/Admin/LeadMasterDataGrid?leadTypeId=" + leadTypeId,
+                "columns": [
+                    { "data": "SNo" },
+                    { "data": "LeadType" },
+                    { "data": "PhoneCount" },
+                    { "data": "EditBtn" }
+                ],
+            });
+        }
+        $(document).on("click", "#tblLeads tbody tr td button.btnView", function () {
+            var id = $(this).data('id');
+            var name = $(this).data('name');
+            const inputOptions = new Promise((resolve) => {
+                $.ajax({
+                    url:'@Url.Action("GetViewList","Admin")',
+                    type: 'POST',
+                    data: {
+                        leadTypeId: id
+                    },
+                    dataType: "json",
+                    success: function (result) {
+                        resolve(
+                            result
+                        )
+                    }
+                });
+            });
+            (async () => {
+                await Swal.fire({
+                    title: name + ' - Master Data',
+                    input: 'textarea',
+                    showCancelButton: true,
+                    cancelButtonColor: '#d33',
+                    inputValue: inputOptions,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    allowEnterKey: false,
+                    showCancelButton: false,
+                    customClass: 'swal-wide',
+                    onBeforeOpen() {
+                        Swal.showLoading()
+                    },
+                    onAfterClose() {
+                        Swal.hideLoading()
+                    },
+                })
+            })();
+            $('.swal2-textarea').prop('disabled', true);
+        });
+    </script>
+}

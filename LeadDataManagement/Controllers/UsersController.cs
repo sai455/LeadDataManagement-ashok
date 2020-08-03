@@ -92,7 +92,7 @@ namespace LeadDataManagement.Controllers
         public ActionResult UserScrubsGrid()
         {
             var nowDate = DateTimeHelper.GetDateTimeNowByTimeZone(DateTimeHelper.TimeZoneList.PacificStandardTime);
-            var monthStartDate= new DateTime(nowDate.Year, nowDate.Month,26);
+            var monthStartDate= new DateTime(nowDate.Year, nowDate.Month,1);
             var Leads = leadService.GetLeadTypes().ToList();
             List<UserScrubsGridModel> retData = new List<UserScrubsGridModel>();
             var userScrubs = userScrubService.GetScrubsByUserId(this.CurrentLoggedInUser.Id).Where(x => x.CreatedDate.Date >= monthStartDate.Date && x.CreatedDate.Date <= nowDate.Date);
@@ -125,8 +125,8 @@ namespace LeadDataManagement.Controllers
         {
             bool retVal = false;
             var dateNow = DateTimeHelper.GetDateTimeNowByTimeZone(DateTimeHelper.TimeZoneList.PacificStandardTime);
-            var userPackagesList = userCreditLogsService.GetAllUserCreditLogs().Where(x => x.UserId == this.CurrentLoggedInUser.Id).Select(x => x.PackageId).Distinct().ToList();
-            retVal=creditPackageService.GetAllCreditPackages().Any(x => userPackagesList.Contains(x.Id) && x.IsUnlimitedPackage == true && x.CreatedAt.Month== dateNow.Month);
+            var userPackagesList = userCreditLogsService.GetAllUserCreditLogs().Where(x => x.UserId == this.CurrentLoggedInUser.Id && x.CreatedAt.Month == dateNow.Month).Select(x => x.PackageId).Distinct().ToList();
+            retVal=creditPackageService.GetAllCreditPackages().Any(x => userPackagesList.Contains(x.Id) && x.IsUnlimitedPackage == true);
             return retVal;
         }
         public ActionResult PerformUserScrub(FormCollection formCollection, string PhoneNos, string SelectedLeads)
@@ -227,7 +227,7 @@ namespace LeadDataManagement.Controllers
                     }
                     if (UserScrubPhonesList.Count > 0)
                     {
-                        if ((this.CurrentLoggedInUser.CreditScore - used) >= UserScrubPhonesList.Count())
+                        if (isUnlimitedPackageInActivation || ((this.CurrentLoggedInUser.CreditScore - used) >= UserScrubPhonesList.Count()))
                         {
                             var matchedList = leadService.ScrubPhoneNos(selectedLeads, UserScrubPhonesList).ToList();
                             var unmatchedCount = UserScrubPhonesList.Except(matchedList).ToList();

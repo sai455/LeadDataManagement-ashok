@@ -79,7 +79,7 @@ namespace LeadDataManagement.Controllers
                 {
                     user.Password = LeadsHelpers.Encrypt(user.Password);
                     _userService.SaveUser(user);
-                    LeadsHelpers.SendEmail(user.Name, user.Email, string.Empty);
+                    //LeadsHelpers.SendEmail(user.Name, user.Email, string.Empty);
                     return RedirectToAction("SignUpCompleted", "Login");
                 }
             }

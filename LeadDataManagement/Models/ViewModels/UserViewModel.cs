@@ -45,6 +45,7 @@ namespace LeadDataManagement.Models.ViewModels
         public int ReferedById { get; set; }
         public string RefedByUserName { get; set; }
         public string NickName { get; set; }
+        public string IsUnlimitedPackageInActivation { get; set; }
         
     }
 }

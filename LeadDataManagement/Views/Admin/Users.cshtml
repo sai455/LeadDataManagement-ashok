@@ -70,6 +70,7 @@
                                         <th>Credits</th>
                                         <th>Signup Date</th>
                                         <th>Status</th>
+                                        <th>Unlimted Scrubs</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -86,6 +87,7 @@
                                         <th>Credits</th>
                                         <th>Signup Date</th>
                                         <th>Status</th>
+                                        <th>Unlimted Scrubs</th>
                                         <th></th>
                                     </tr>
                                 </tfoot>
@@ -121,6 +123,7 @@
                                        required="required"
                                        name="CreditScore"
                                        id="CreditScore"
+                                       value="0"
                                        onkeyup="if (/\D/g.test(this.value)) this.value = this.value.replace(/\D/g,'')" />
                             </div>
                         </div>
@@ -172,11 +175,6 @@
             var nickName = $('#nickName').val();
             if ($('#CreditScore').val().length == 0) {
                 $('#errorText').html("Credit Score is required.")
-                $('#errorDiv').show();
-                return false;
-            }
-            if ($('#CreditScore').is('[readonly]') == false && creditScore == 0) {
-                $('#errorText').html("Credit Score should be greater than 0")
                 $('#errorDiv').show();
                 return false;
             }
@@ -313,6 +311,7 @@
                     { "data": "CreditScoreStr" },
                     { "data": "CreatedAt" },
                     { "data": "Status" },
+                    { "data":"IsUnlimitedPackageInActivation"},
                     { "data": "EditBtn" }
                 ],
             });

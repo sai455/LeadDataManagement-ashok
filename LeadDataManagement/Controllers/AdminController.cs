@@ -1,4 +1,5 @@
 ﻿using LeadDataManagement.Helpers;
+using LeadDataManagement.Models.Context;
 using LeadDataManagement.Models.ViewModels;
 using LeadDataManagement.Services.Interface;
 using Newtonsoft.Json;
@@ -17,6 +18,7 @@ namespace LeadDataManagement.Controllers
         private IUserScrubService userScrubService;
         private IUserCreditLogsService userCreditLogsService;
         private ICreditPackageService creditPackageService;
+        private DateTime dateNow;
         public AdminController(IUserService _userService, ILeadService _leadService, IUserScrubService userScrubService, ICreditPackageService creditPackageService, IUserCreditLogsService _userCreditLogsService)
         {
             this.userService = _userService;
@@ -24,6 +26,7 @@ namespace LeadDataManagement.Controllers
             this.userScrubService = userScrubService;
             this.creditPackageService = creditPackageService;
             this.userCreditLogsService = _userCreditLogsService;
+            this.dateNow = DateTimeHelper.GetDateTimeNowByTimeZone(DateTimeHelper.TimeZoneList.PacificStandardTime);
         }
 
         #region Dashboard
@@ -129,9 +132,10 @@ namespace LeadDataManagement.Controllers
         }
         public ActionResult UsersGrid()
         {
-            var userScrubLogs = userScrubService.GetAllUserScrubs().ToList();
+            var userScrubLogs = userScrubService.GetAllUserScrubs().Select(x=> new {UserId=x.UserId, IsUnlimitedPackageInActivation=x.IsUnlimitedPackageInActivation, ScrubCredits=x.ScrubCredits }).ToList();
             List<UserGridViewModel> retData = new List<UserGridViewModel>();
-            retData = userService.GetUsers().ToList().Select(x => new UserGridViewModel 
+            var creditsLogsList = userCreditLogsService.GetAllUserCreditLogs().ToList();
+            retData = userService.GetUsers().ToList().Where(x => x.IsAdmin == false).Select(x => new UserGridViewModel 
             { 
                 Id=x.Id,
                 Name=x.Name,
@@ -169,13 +173,20 @@ namespace LeadDataManagement.Controllers
                 }
                 if(r.ReferedById!=0)
                 {
-                    r.RefedByUserName = userService.GetUsers().FirstOrDefault(x => x.Id == r.ReferedById).Name;
+                    r.RefedByUserName = retData.FirstOrDefault(x => x.Id == r.ReferedById).Name;
                 }
+                r.IsUnlimitedPackageInActivation = checkUnlimitedPackageInActivation(r.Id, creditsLogsList) ==true?"Yes":"No";
             }
             var jsonData = new { data = from emp in retData select emp };
             return Json(jsonData, JsonRequestBehavior.AllowGet);
         }
-
+        private bool checkUnlimitedPackageInActivation(int userId, List<UserCreditLogs>userPackages)
+        {
+            bool retVal = false;
+            var userPackagesList = userPackages.Where(x => x.UserId == userId && x.CreatedAt.Month == dateNow.Month).Select(x => x.PackageId).Distinct().ToList();
+            retVal = creditPackageService.GetAllCreditPackages().Any(x => userPackagesList.Contains(x.Id) && x.IsUnlimitedPackage == true);
+            return retVal;
+        }
         public ActionResult UpdateUserStatus(int userId,long creditScore,int statusId,int discountPercentage,string nickName,long originalCredit)
         {
             try

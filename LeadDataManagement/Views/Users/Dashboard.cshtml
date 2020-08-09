@@ -1,7 +1,5 @@
 ﻿
-@{
-    ViewBag.Title = "Dashboard";
-}
+@{ ViewBag.Title = "Dashboard"; }
 <link rel="stylesheet" type="text/css" href="~/Content/lead-app-content/css/widget.css">
 
 <link rel="stylesheet" href="~/Content/lead-app-content/css/chartist.css" type="text/css" media="all">
@@ -45,7 +43,7 @@
                             <div class="card-block">
                                 <div class="row align-items-center">
                                     <div class="col text-center">
-                                        <h3 class=" f-w-700 m-b-5 remaining"></h3>
+                                        <h3 class=" f-w-700 m-b-5 remaining">0</h3>
                                         <h6 class="m-b-0 ">Credits Remaining</h6>
                                     </div>
                                 </div>
@@ -53,17 +51,53 @@
                         </div>
                     </div>
                     <div class="col-xl-3 col-md-6">
-                        <div class="card ticket-card" style="height:70%!important">
-                            <div class="card-body">
-                                <p class="m-b-10 bg-c-blue lbl-card"><i class="fas fa-users"></i> Referral Code</p>
-                                <div class="text-center">
-                                    <h2 class="m-b-10 d-inline-block text-c-blue">@ViewBag.CurrentUser.ReferalCode</h2>
+                        <div class="card card-green st-cir-card text-white">
+                            <div class="card-block">
+                                <div class="row align-items-center">
+                                    <div class="col text-center">
+                                        <h3 class=" f-w-700 m-b-5">@ViewBag.CurrentUser.ReferalCode</h3>
+                                        <h6 class="m-b-0 "> Referral Code</h6>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
+
+                @if (Convert.ToBoolean(ViewBag.HasActiveUnlimitedPackage) == true)
+                {
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="card-header">
+                    @if (Convert.ToInt32(@ViewBag.RemainingDays) == 1)
+                    {
+    <h5>Your Unlimited Pack will expires in  Today</h5>
+}
+else
+{
+<h5> Your Unlimited Pack will expires in  @ViewBag.RemainingDays - Days </h5>
+}
 
                 </div>
+                <div class="card-block list-tag">
+                    <div class="row">
+                        <div class="col-sm-12 col-xl-12">
+                            <ol>
+                                <li>Months are calculated as Calendar Months (first to last day of the month)</li>
+                                <li>Purchases are prorated based on when you purchase (10th of the month is 33% off, etc)</li>
+                                <li>DO NOT try to renew until after the 1st of each month. Our system is not designed to prevent you from purchasing more than once for the same month, and does not allow you to purchase for future months yet. </li>
+                                <li>Phone numbers must be in the first column.</li>
+                                <li>Any credit balance you have will still remain during your Unlimited active period, but will not be used until the unlimited expires at the end of each month.</li>
+                                <li>You may still accrue referral bonus credits during Unlimited as well.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>}
             </div>
             <div class="page-body">
                 <div class="card">
@@ -142,11 +176,12 @@
                                     <option value="">Select Package</option>
                                     @foreach (var item in ViewBag.PackagesList)
                                     {
-                                        <option value="@item.Id" data-credits="@item.Count"
-                                                data-amount="@item.Amount">
-                                            @item.Name (@item.Count Credits = @item.Amount USD)
-                                        </option>
-                                    }
+                        <option value="@item.Id"
+                                data-credits="@item.Count"
+                                data-amount="@item.Amount"
+                                data-isunlimitedpack="@item.IsUnlimited">
+                            @item.Name (@item.Count Credits = @item.Amount USD)
+                        </option>}
                                 </select>
                             </div>
                         </div>
@@ -247,6 +282,7 @@
             var qty = $('#qty').val();
             var credits = parseInt($('.ddlPackage').find(':selected').data('credits'))*parseInt(qty);
             var amt = $('.ddlPackage').find(':selected').data('amount');
+            var isUnlimitedPackage = $('.ddlPackage').find(':selected').data('isunlimitedpack');
             var price = amt * qty;
             var numVal1 = Number(price);
             var numVal2 = Number("@ViewBag.CurrentUser.DiscountPercentage") / 100;
@@ -266,7 +302,8 @@
                      discountPercentage: "@ViewBag.CurrentUser.DiscountPercentage",
                      finalAmount: totalValue.toFixed(2),
                      referalCredits: referalCredits,
-                     transactionDetails: JSON.stringify(transactionDetails)
+                     transactionDetails: JSON.stringify(transactionDetails),
+                     isUnlimitedPackage: isUnlimitedPackage
                  },
                 success: function (data) {
                     getUserCreditsInformation();

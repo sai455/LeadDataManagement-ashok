@@ -193,13 +193,15 @@
         }
         //Edit a User
         $(document).on("click", "#tblUsers tbody tr td button.btnedit", function () {
+            debugger;
             var id = $(this).data('id');
             var score = $(this).data('score');
+            var oscore = $(this).data('oscore');
             var statusId = $(this).data('status');
             var nickName = $(this).data('nick');
             var discountPercentage = $(this).data('discountpercentage');
             $('#originalCredit').val(score);
-            $('#CreditScore').val(score);
+            $('#CreditScore').val(oscore);
             $('#Userid').val(id);
             $('#statusId').val(statusId);
             $('#discountPercentage').val(discountPercentage);

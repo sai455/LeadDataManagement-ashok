@@ -36,6 +36,15 @@ namespace LeadDataManagement.Controllers
         {
             ViewBag.PayPalClientId = "AdpPKo_1ekKlG7W9Njp8INCxwYKhDACND1RMgZZzliXv0YjhFLCnZ507Jlu0F7LBPNHNIVmFHe4njTKl";
             ViewBag.CurrentUser = this.CurrentLoggedInUser;
+            var hasUnlimitedPack= checkUnlimitedPackageInActivation();
+            ViewBag.HasActiveUnlimitedPackage = hasUnlimitedPack;
+            if (hasUnlimitedPack)
+            {
+                var todayDate = DateTimeHelper.GetDateTimeNowByTimeZone(DateTimeHelper.TimeZoneList.PacificStandardTime);
+                int daysInMonth = DateTime.DaysInMonth(todayDate.Year, todayDate.Month);
+                DateTime monthLastDate = new DateTime(todayDate.Year, todayDate.Month, daysInMonth);
+                ViewBag.RemainingDays = (int)(monthLastDate - todayDate).TotalDays + 1;
+            }
             List<DropDownModel> packageList = new List<DropDownModel>();
             var packagesList = creditPackageService.GetAllCreditPackages().Where(x => x.IsActive == true).ToList().Select(x => new DropDownModel
             {
@@ -469,7 +478,7 @@ namespace LeadDataManagement.Controllers
         public ActionResult UserCreditLogGrid()
         {
             List<UserCreditLogGridViewModel> retData = new List<UserCreditLogGridViewModel>();
-            var userCreditLogs = userCreditLogsService.GetAllUserCreditLogs().Where(x=>x.UserId==CurrentLoggedInUser.Id && x.PackageId>0).ToList();
+            var userCreditLogs = userCreditLogsService.GetAllUserCreditLogs().Where(x=> x.PackageId > 0 && x.UserId==CurrentLoggedInUser.Id).ToList();
             int iCount = 0;
             foreach (var u in userCreditLogs)
             {
@@ -532,12 +541,12 @@ namespace LeadDataManagement.Controllers
         }
 
         [HttpPost]
-        public ActionResult AddUserCredits(int packageId, int qty, long credits, float amount, int discountPercentage, float finalAmount, long referalCredits,string transactionDetails)
+        public ActionResult AddUserCredits(int packageId, int qty, long credits, float amount, int discountPercentage, float finalAmount, long referalCredits,string transactionDetails,bool isUnlimitedPackage)
         {
             long rCredits = 0;
-            if (CurrentLoggedInUser.ReferedUserId.HasValue && CurrentLoggedInUser.ReferedUserId.Value > 0)
+            if (CurrentLoggedInUser.ReferedUserId.HasValue && (CurrentLoggedInUser.ReferedUserId.Value > 0 || isUnlimitedPackage))
             {
-                rCredits = referalCredits;
+                rCredits = isUnlimitedPackage?100000:referalCredits;
                 var userData = userService.GetUsers().Where(x => x.Id == CurrentLoggedInUser.ReferedUserId.Value).FirstOrDefault();
                 userData.CreditScore += referalCredits;
                 userService.UpdateUserDetails(userData);

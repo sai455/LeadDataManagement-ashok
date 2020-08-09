@@ -132,10 +132,11 @@ namespace LeadDataManagement.Controllers
         }
         public ActionResult UsersGrid()
         {
+            
             var userScrubLogs = userScrubService.GetAllUserScrubs().Select(x=> new {UserId=x.UserId, IsUnlimitedPackageInActivation=x.IsUnlimitedPackageInActivation, ScrubCredits=x.ScrubCredits }).ToList();
             List<UserGridViewModel> retData = new List<UserGridViewModel>();
             var creditsLogsList = userCreditLogsService.GetAllUserCreditLogs().ToList();
-            retData = userService.GetUsers().ToList().Where(x => x.IsAdmin == false).Select(x => new UserGridViewModel 
+            retData = userService.GetUsers().Where(x=>x.IsAdmin==true).ToList().Select(x => new UserGridViewModel 
             { 
                 Id=x.Id,
                 Name=x.Name,
@@ -150,26 +151,27 @@ namespace LeadDataManagement.Controllers
                 ReferalCode=x.ReferalCode,
                 ReferedById = x.ReferedUserId.HasValue ? x.ReferedUserId.Value : 0,
                 DiscountPercentage=x.DiscountPercentage.HasValue?x.DiscountPercentage.Value:0
-            }).ToList();
+            }).OrderByDescending(x=>x.Id).ToList();
             int iCount = 0;
             foreach(var r in retData)
             {
+                var scoreBefore = r.CreditScore;
                 r.CreditScore = r.CreditScore - userScrubLogs.Where(x => x.UserId == r.Id).Where(x => x.IsUnlimitedPackageInActivation == false).Sum(x => x.ScrubCredits);
                 iCount += 1;
                 r.SNo = iCount;
                 r.CreditScoreStr = LeadsHelpers.ToUsNumberFormat(r.CreditScore);
                 if (r.StatusId==1)
                 {
-                    r.EditBtn = "<button type='button' class='btn btn-success m-b-10 btnapprove btn-sm' data-id='" + r.Id+ "'data-discountPercentage='"+ r.DiscountPercentage +"' data-score='" + r.CreditScore+ "' data-nick='"+ r.NickName+"'>Approve</button>";
+                    r.EditBtn = "<button type='button' class='btn btn-success m-b-10 btnapprove btn-sm' data-id='" + r.Id+ "'data-discountPercentage='"+ r.DiscountPercentage +"' data-score='" + r.CreditScore+ "'data-oscore='" + scoreBefore + "' data-nick='" + r.NickName+"'>Approve</button>";
                 }else if(r.StatusId==2)
                 {
-                    r.EditBtn = "<button type='button' class='btn btn-danger m-b-10 btninactivate btn-sm' data-id='" + r.Id + "' data-discountPercentage='"+ r.DiscountPercentage +"' data-score='" + r.CreditScore + "' data-nick='" + r.NickName + "'>In-Activate</button> &nbsp;&nbsp;" + 
-                        "<button type = 'button' class='btn btn-success m-b-10 btnedit btn-sm' data-id='" + r.Id+ "' data-discountPercentage='" + r.DiscountPercentage + "' data-status='" + r.StatusId+"' data-score='"+r.CreditScore + "' data-nick='" + r.NickName + "'>Edit</button>";
+                    r.EditBtn = "<button type='button' class='btn btn-danger m-b-10 btninactivate btn-sm' data-id='" + r.Id + "' data-discountPercentage='"+ r.DiscountPercentage +"' data-score='" + r.CreditScore + "' data-oscore='" + scoreBefore+ "' data-nick='" + r.NickName + "'>In-Activate</button> &nbsp;&nbsp;" + 
+                        "<button type = 'button' class='btn btn-success m-b-10 btnedit btn-sm' data-id='" + r.Id+ "' data-discountPercentage='" + r.DiscountPercentage + "' data-status='" + r.StatusId+ "' data-oscore='" + scoreBefore + "' data-score='" + r.CreditScore + "' data-nick='" + r.NickName + "'>Edit</button>";
                 }
                 else
                 {
-                    r.EditBtn = "<button type='button' class='btn btn-primary m-b-10 btnactivate btn-sm' data-id='" + r.Id + "' data-discountPercentage='" + r.DiscountPercentage + "' data-score='" + r.CreditScore + "' data-nick='" + r.NickName + "'>Activate</button>&nbsp;&nbsp;"
-                        + "<button type = 'button' class='btn btn-success m-b-10 btnedit btn-sm' data-id='" + r.Id + "' data-discountPercentage='" + r.DiscountPercentage + "' data-status='" + r.StatusId + "' data-score='" + r.CreditScore + "' data-nick='" + r.NickName + "'>Edit</button>";
+                    r.EditBtn = "<button type='button' class='btn btn-primary m-b-10 btnactivate btn-sm' data-id='" + r.Id + "' data-discountPercentage='" + r.DiscountPercentage + "'data-oscore='" + scoreBefore + "' data-score='" + r.CreditScore + "' data-nick='" + r.NickName + "'>Activate</button>&nbsp;&nbsp;"
+                        + "<button type = 'button' class='btn btn-success m-b-10 btnedit btn-sm' data-id='" + r.Id + "' data-discountPercentage='" + r.DiscountPercentage + "'data-oscore='" + scoreBefore + "' data-status='" + r.StatusId + "' data-score='" + r.CreditScore + "' data-nick='" + r.NickName + "'>Edit</button>";
                 }
                 if(r.ReferedById!=0)
                 {

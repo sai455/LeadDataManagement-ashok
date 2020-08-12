@@ -31,13 +31,23 @@ namespace LeadDataManagement.Helpers
         {
             try
             {
+
                var str=Regex.Replace(inputVal, @"[^0-9a-zA-Z:,]+", "");
-                if (str.Length > 10)
+                long number;
+                bool isSuccess = Int64.TryParse(str, out number);
+                if (isSuccess)
                 {
-                    var trimPos = str.Length - 10;
-                    str = str.Substring(trimPos);
+                    if (str.Length > 10)
+                    {
+                        var trimPos = str.Length - 10;
+                        str = str.Substring(trimPos);
+                    }
+                    return str;
                 }
-                return str;
+                else
+                {
+                    return inputVal;
+                }
             }
             catch (Exception ex)
             {

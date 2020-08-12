@@ -72,12 +72,10 @@
                 <div class="card-header">
                     @if (Convert.ToInt32(@ViewBag.RemainingDays) == 1)
                     {
-    <h5>Your Unlimited Pack will expires in  Today</h5>
-}
+    <h5>Your Unlimited Pack will expire in  Today</h5> }
 else
 {
-<h5> Your Unlimited Pack will expires in  @ViewBag.RemainingDays - Days </h5>
-}
+<h5> Your Unlimited Pack will expires in  @ViewBag.RemainingDays - Days </h5>}
 
                 </div>
                 <div class="card-block list-tag">
@@ -86,8 +84,7 @@ else
                             <ol>
                                 <li>Months are calculated as Calendar Months (first to last day of the month)</li>
                                 <li>Purchases are prorated based on when you purchase (10th of the month is 33% off, etc)</li>
-                                <li>DO NOT try to renew until after the 1st of each month. Our system is not designed to prevent you from purchasing more than once for the same month, and does not allow you to purchase for future months yet. </li>
-                                <li>Phone numbers must be in the first column.</li>
+                                <li> You can renew on or after the 1st of each month.</li>
                                 <li>Any credit balance you have will still remain during your Unlimited active period, but will not be used until the unlimited expires at the end of each month.</li>
                                 <li>You may still accrue referral bonus credits during Unlimited as well.</li>
                             </ol>
@@ -101,9 +98,13 @@ else
             </div>
             <div class="page-body">
                 <div class="card">
+
                     <div class="card-header">
                         <div class="col-xl-3 m-b-30">
-                            <button class="btn btn-primary waves-effect waves-light btn-sm addCredits" data-toggle="modal" data-target="#large-Modal"><i class="fa fa-hourglass-2"></i> Purchase Credits</button>
+                            @if (Convert.ToBoolean(ViewBag.HasActiveUnlimitedPackage) == false)
+                            {
+                                <button class="btn btn-primary waves-effect waves-light btn-sm addCredits" data-toggle="modal" data-target="#large-Modal"><i class="fa fa-hourglass-2"></i> Purchase Credits</button>
+                            }
                         </div>
                         <div class="card-header-right">
                             <ul class="list-unstyled card-option">

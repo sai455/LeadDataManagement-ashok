@@ -136,7 +136,7 @@ namespace LeadDataManagement.Controllers
             var userScrubLogs = userScrubService.GetAllUserScrubs().Select(x=> new {UserId=x.UserId, IsUnlimitedPackageInActivation=x.IsUnlimitedPackageInActivation, ScrubCredits=x.ScrubCredits }).ToList();
             List<UserGridViewModel> retData = new List<UserGridViewModel>();
             var creditsLogsList = userCreditLogsService.GetAllUserCreditLogs().ToList();
-            retData = userService.GetUsers().Where(x=>x.IsAdmin==true).ToList().Select(x => new UserGridViewModel 
+            retData = userService.GetUsers().ToList().Select(x => new UserGridViewModel 
             { 
                 Id=x.Id,
                 Name=x.Name,

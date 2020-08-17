@@ -401,7 +401,7 @@ namespace LeadDataManagement.Controllers
                             else
                             {
                                 DataRow dr = dtCsv.NewRow();
-                                for (int k = 0; k < rowValues.Count() && k<columnCount; k++)
+                                for (int k = 0; k < rowValues.Count() && (k<columnCount|| columnCount == 0); k++)
                                 {
                                     dr[k] = LeadsHelpers.ProcessNumber(rowValues[k].Replace("\r", "").ToString());
                                 }
@@ -551,7 +551,7 @@ namespace LeadDataManagement.Controllers
                 userData.CreditScore += referalCredits;
                 userService.UpdateUserDetails(userData);
             }
-            userCreditLogsService.BuyCredits(CurrentLoggedInUser.Id, packageId, qty, credits, Convert.ToInt64(amount), discountPercentage, finalAmount, rCredits, transactionDetails);
+            userCreditLogsService.BuyCredits(CurrentLoggedInUser.Id, packageId, qty, credits, Convert.ToInt64(amount), discountPercentage, finalAmount, rCredits, transactionDetails,true);
             CurrentLoggedInUser.CreditScore += credits;
             userService.UpdateUserDetails(CurrentLoggedInUser);
             return Json("");

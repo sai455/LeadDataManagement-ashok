@@ -20,7 +20,7 @@ namespace LeadDataManagement.Services
         {
             return userCreditLogsRepository.GetAll();
         }
-        public void BuyCredits(int userId,int packageId, int qty, long credits, long amount, int discountPercentage, float finalAmount,long referalCredits,string transactionDetails)
+        public void BuyCredits(int userId,int packageId, int qty, long credits, long amount, int discountPercentage, float finalAmount,long referalCredits,string transactionDetails,bool isActive)
         {
             userCreditLogsRepository.AddAsyn(new UserCreditLogs
             {
@@ -34,8 +34,14 @@ namespace LeadDataManagement.Services
                 FinalAmount=finalAmount,
                 CreatedAt= currentPstTime,
                 ModifiedAt=currentPstTime,
-                ReferalUserCredits= referalCredits
+                ReferalUserCredits= referalCredits,
+                IsActive=isActive
             });
+        }
+
+        public void UpdateCreditLog(UserCreditLogs userLog)
+        {
+            userCreditLogsRepository.Update(userLog, userLog.Id);
         }
     }
 }

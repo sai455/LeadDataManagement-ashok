@@ -147,6 +147,15 @@
                                        maxlength="100">
                             </div>
                         </div>
+                        <div class="form-group row">
+                            <label class="col-sm-6 col-form-label">Unlimited Package Active</label>
+                            <div class="col-sm-6">
+                              <select class="form-control" id="IsUnlimitedActive">
+                                  <option value="true">Yes</option>
+                                  <option value="false">No</option>
+                              </select>
+                            </div>
+                        </div>
                         <div class="">
                             <div class="alert alert-danger background-danger" id="errorDiv" style="display:none">
                                 <strong>Error! </strong><span id="errorText"></span>
@@ -173,6 +182,7 @@
             var creditScore = parseInt($('#CreditScore').val());
             var oscore = parseInt($('#originalCredit').val());
             var nickName = $('#nickName').val();
+            var IsUnlimitedActive = $('#IsUnlimitedActive').val();
             if ($('#CreditScore').val().length == 0) {
                 $('#errorText').html("Credit Score is required.")
                 $('#errorDiv').show();
@@ -188,24 +198,25 @@
                 $('#errorDiv').show();
                 return false;
             }
-            updateUserStatus($('#Userid').val(), parseInt($('#CreditScore').val()), $('#statusId').val(), parseInt(discountVal), nickName, oscore)
+            updateUserStatus($('#Userid').val(), parseInt($('#CreditScore').val()), $('#statusId').val(), parseInt(discountVal), nickName, oscore, IsUnlimitedActive)
 
         }
         //Edit a User
         $(document).on("click", "#tblUsers tbody tr td button.btnedit", function () {
-            debugger;
             var id = $(this).data('id');
             var score = $(this).data('score');
             var oscore = $(this).data('oscore');
             var statusId = $(this).data('status');
             var nickName = $(this).data('nick');
             var discountPercentage = $(this).data('discountpercentage');
+            var IsUnlimitedActive = $(this).data('isunlimited');
             $('#originalCredit').val(score);
             $('#CreditScore').val(oscore);
             $('#Userid').val(id);
             $('#statusId').val(statusId);
             $('#discountPercentage').val(discountPercentage);
             $('#nickName').val(nickName);
+            $('#IsUnlimitedActive').val(IsUnlimitedActive.toLocaleLowerCase());
             $('.modal-title').html("Edit User Details");
             //$('#CreditScore').attr('readonly', true);
             $('#Modal').modal('show');
@@ -268,7 +279,7 @@
             })
 
         });
-        function updateUserStatus(id, score, statusId, discountPercentage, nickName, oscore) {
+        function updateUserStatus(id, score, statusId, discountPercentage, nickName, oscore, IsUnlimitedActive) {
             $.ajax({
                 url: '@Url.Action("UpdateUserStatus", "Admin")',
                 type: 'post',
@@ -279,7 +290,8 @@
                     creditScore: score,
                     statusId: statusId,
                     discountPercentage: discountPercentage,
-                    nickName: nickName
+                    nickName: nickName,
+                    IsUnlimitedActive: IsUnlimitedActive
                 },
                 success: function (data) {
                     loadDataTable();

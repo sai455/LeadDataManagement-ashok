@@ -102,7 +102,10 @@ namespace LeadDataManagement.Services
             var userData = _userRepository.FindBy(x => x.Id == userId).FirstOrDefault();
             if(userData!=null)
             {
-                userData.CreditScore = CreditScore;
+                if(CreditScore != -1)
+                {
+                    userData.CreditScore = CreditScore;
+                }
                 userData.StatusId = statusId;
                 userData.ModifiedAt = currentPstTime;
                 userData.DiscountPercentage = discountPercentage;
